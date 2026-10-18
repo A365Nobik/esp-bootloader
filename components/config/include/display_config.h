@@ -1,0 +1,23 @@
+#pragma once
+#include "hal/gpio_types.h"
+
+#define LCD_WIDTH 320
+#define LCD_HEIGHT 240
+#define LCD_ROTATE 3
+#define LCD_START_BRG 100 // 0-255
+
+// #define USE_SENSOR
+
+#define LCD_PIN_CS GPIO_NUM_4
+#define LCD_PIN_DS GPIO_NUM_6
+#define LCD_PIN_RST GPIO_NUM_5
+#define LCD_PIN_BL GPIO_NUM_7
+#define LCD_PIN_MOSI GPIO_NUM_13
+#define LCD_PIN_MISO GPIO_NUM_11
+#define LCD_PIN_SCLK GPIO_NUM_12
+#define LCD_SPI_HOST SPI2_HOST
+#define LCD_SPI_WRITE_SPEED 20000000
+
+#ifdef USE_SENSOR
+#define LCD_SPI_READ_SPEED 16 * 000000
+#endif

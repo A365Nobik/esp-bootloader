@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "name": "ESP-IDF",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+      "cStandard": "c11",
+      "intelliSenseMode": "macos-clang-arm64",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${env:HOME}/.espressif/v6.1/esp-idf/components/**"
+      ],
+      "browse": {
+        "path": [
+          "${workspaceFolder}",
+          "${env:HOME}/.espressif/v6.1/esp-idf/components"
+        ],
+        "limitSymbolsToIncludedHeaders": false
+      }
+    }
+  ],
+  "version": 4
+}
