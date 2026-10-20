@@ -52,7 +52,7 @@ void Display::drawMenuLayout(const menu_layout &layout)
     _lcd.drawFastVLine(layout.app_sidebar_x, layout.app_sidebar_y, layout.apps_h);
 }
 
-void Display::printMenuInfo(const menu_layout &layout)
+void Display::printMenuInfo(const menu_layout &layout, const bool cardState)
 {
     _lcd.setFont(&fonts::Font0);
     _lcd.setTextSize(1);
@@ -61,8 +61,16 @@ void Display::printMenuInfo(const menu_layout &layout)
 
     // header
     const char *title = "Esp-Bootloader";
-    _lcd.drawString(title, layout.padding, layout.header_h / 4);
-    _lcd.drawFastVLine(_lcd.textWidth(title) + layout.padding * 2, 0, layout.header_h);
+    _lcd.drawString(title, layout.padding, layout.header_y);
+    int16_t h_x = _lcd.textWidth(title) + layout.padding;
+    _lcd.drawFastVLine(h_x, 0, layout.header_h);
+
+    h_x += layout.padding;
+    char stateBuf[6];
+    sniprintf(stateBuf, sizeof(stateBuf), "SD:%s", cardState ? "OK" : "NO");
+    _lcd.drawString(stateBuf, h_x, layout.header_y);
+    h_x += _lcd.textWidth(stateBuf) + layout.padding;
+    _lcd.drawFastVLine(h_x, 0, layout.header_h);
 
     // table
     _lcd.setTextDatum(textdatum_t::middle_left);
@@ -178,10 +186,19 @@ void Display::drawPanic(const char *msg)
     _lcd.clear();
     _lcd.fillScreen(TFT_RED);
     _lcd.setTextColor(TFT_WHITE);
-    _lcd.setFont(&fonts::Font0);
+    auto font = &fonts::Font0;
+    _lcd.setFont(font);
     _lcd.setTextSize(2);
     _lcd.setTextDatum(top_left);
     _lcd.setCursor(0, 0);
     _lcd.setTextWrap(true);
     _lcd.print(msg);
+
+    _lcd.setTextDatum(middle_center);
+    int32_t y = _lcd.height() - _lcd.fontHeight(&fonts::Font0);
+    int32_t x = (_lcd.width() / 2) - _lcd.textWidth("OK") + 1;
+    _lcd.fillRect(0, y, _lcd.width(), _lcd.height() - y, TFT_WHITE);
+    _lcd.setCursor(x, y + (_lcd.fontHeight(&fonts::Font0) / 2));
+    _lcd.setTextColor(TFT_RED);
+    _lcd.print("OK");
 }

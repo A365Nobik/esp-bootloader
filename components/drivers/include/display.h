@@ -13,6 +13,7 @@ struct menu_layout
     uint16_t screen_h;
 
     uint16_t header_h;
+    uint16_t header_y;
     uint16_t footer_h;
     uint16_t footer_y;
     // uint8_t controls_h;
@@ -39,6 +40,7 @@ struct menu_layout
         screen_h = h;
 
         header_h = screen_h * header_pers;
+        header_y = header_h / 4;
         footer_h = screen_h * footer_pers;
         footer_y = screen_h - footer_h;
         table_h = header_h * 2;
@@ -69,7 +71,7 @@ public:
     bool init();
     void intro();
     void drawMenuLayout(const menu_layout &layout);
-    void printMenuInfo(const menu_layout &layout);
+    void printMenuInfo(const menu_layout &layout, const bool cardState);
     void drawPanic(const char *msg);
 
     void highlightApp(const menu_layout &layout, boot_app_t apps[], uint8_t length, uint8_t id);
