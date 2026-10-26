@@ -1,6 +1,7 @@
 #pragma once
 #include "esp_ota_ops.h"
 #include "esp_partition.h"
+#include "esp_app_format.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -17,8 +18,10 @@ extern "C"
         uint32_t size;
     } boot_app_t;
 
-    bool boot_app(const esp_partition_t *app);
-    uint8_t init_apps(boot_app_t arr[], uint8_t max);
+    esp_err_t boot_load_app(const esp_partition_t *app);
+    uint8_t boot_init_apps(boot_app_t arr[], uint8_t max);
+    bool part_has_image(const esp_partition_t *part);
+    
 
 #ifdef __cplusplus
 }

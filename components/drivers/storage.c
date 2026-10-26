@@ -4,10 +4,15 @@
 #include "driver/sdspi_host.h"
 #include "sdmmc_cmd.h"
 #include "esp_log.h"
+#include <dirent.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <errno.h>
+#include "esp_ota_ops.h"
 
-static const char *TAG = "storage";
+static const char *TAG = "Storage";
 
-esp_err_t init_storage(void)
+esp_err_t storage_begin(void)
 {
     ESP_LOGI(TAG, "Initializing storage...");
 
@@ -15,7 +20,7 @@ esp_err_t init_storage(void)
 
     esp_vfs_fat_mount_config_t mount_config = {
         .format_if_mount_failed = false,
-        .max_files = 1,
+        .max_files = 5,
         .allocation_unit_size = 16 * 1024};
 
     ESP_LOGI(TAG, "Initializing SPI bus...");
@@ -65,5 +70,102 @@ esp_err_t init_storage(void)
     ESP_LOGI(TAG, "Storage initialized");
     sdmmc_card_print_info(stdout, card);
 
+    struct stat st;
+
+    if (stat(HOME_DIR, &st) != 0 || !S_ISDIR(st.st_mode))
+    {
+        ESP_LOGW(TAG, "No home dir (%s), creating...", HOME_DIR);
+        if (mkdir(HOME_DIR, 0) != 0)
+        {
+            ESP_LOGE(TAG, "mkdir failed: %s", strerror(errno));
+            return ESP_FAIL;
+        }
+    }
     return ESP_OK;
+}
+
+uint8_t storage_init_apps(storage_app_t arr[], uint8_t max)
+{
+    DIR *d = opendir(HOME_DIR);
+    if (!d)
+    {
+        ESP_LOGE(TAG, "opendir failed: %s", strerror(errno));
+        return 0;
+    }
+
+    uint8_t n = 0;
+    struct dirent *e;
+    while (n < max && (e = readdir(d)) != NULL)
+    {
+        if (e->d_type == DT_DIR || e->d_name[0] == '.')
+        {
+            continue;
+        }
+
+        const char *ext = strrchr(e->d_name, '.');
+        if (!ext || strcasecmp(ext, ".bin") != 0)
+        {
+            continue;
+        }
+
+        char path[300];
+        snprintf(path, sizeof(path), "%s/%s", HOME_DIR, e->d_name);
+
+        struct stat st;
+        if (stat(path, &st) != 0)
+        {
+            continue;
+        }
+
+        strlcpy(arr[n].name, e->d_name, STORAGE_APP_NAME_LEN);
+        arr[n].size = (uint32_t)st.st_size;
+        n++;
+    }
+    closedir(d);
+    return n;
+}
+
+esp_err_t storage_flash_app(const char *name, const esp_partition_t *part)
+{
+    ESP_LOGI(TAG, "Trying to flash...");
+    char path[300];
+    snprintf(path, sizeof(path), "%s/%s", HOME_DIR, name);
+    struct stat st;
+    if (stat(path, &st) != 0)
+    {
+        return ESP_ERR_NOT_FOUND;
+    }
+    if ((size_t)st.st_size > part->size)
+    {
+        return ESP_ERR_INVALID_SIZE;
+    }
+
+    FILE *f = fopen(path, "rb");
+    if (!f)
+    {
+        return ESP_FAIL;
+    }
+
+    esp_ota_handle_t h;
+    esp_err_t err = esp_ota_begin(part, st.st_size, &h);
+    if (err != ESP_OK)
+    {
+        fclose(f);
+        return err;
+    }
+    static uint8_t buf[4096];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), f)) > 0)
+    {
+        err = esp_ota_write(h, buf, n);
+        if (err != ESP_OK)
+        {
+            esp_ota_abort(h);
+            fclose(f);
+            return err;
+        }
+    }
+    fclose(f);
+
+    return esp_ota_end(h);
 }

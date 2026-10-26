@@ -1,12 +1,12 @@
 dependencies:
   LovyanGFX:
-    component_hash: 7bde3c4760ecc3e3d0d5527f4402ee7a9ad99cd45a44e3d6ddf6cc1812a79697
+    component_hash: 134b336412bb2857ee6bf8e04f2c252c0534ba5c5cd1008f53038aaab94c9a7b
     dependencies: []
     source:
       git: https://github.com/lovyan03/LovyanGFX.git
       path: .
       type: git
-    version: 3527e99d4635bd3ddce7c5c312e98f6e613f93ab
+    version: 1b87851ce2890ee36c97a3e79dbfb6e3a3e725df
   idf:
     source:
       type: idf

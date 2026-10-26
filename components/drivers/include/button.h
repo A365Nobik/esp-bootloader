@@ -6,8 +6,8 @@ struct Button
 {
     gpio_num_t pin;
     const uint32_t delay = 50;
-    bool lastState = true;
-    uint32_t lastTime = 0;
+    bool last_state = true;
+    uint32_t last_time = 0;
 
     void init(gpio_num_t pin)
     {
@@ -16,25 +16,33 @@ struct Button
         gpio_set_pull_mode(pin, GPIO_PULLUP_ONLY);
     }
 
-    bool isClicked(void)
+    bool is_clicked(void)
     {
         bool reading = gpio_get_level(pin);
         uint32_t now = pdTICKS_TO_MS(xTaskGetTickCount());
         bool clicked = false;
 
-        if (reading != lastState)
+        if (reading != last_state)
         {
-            if ((now - lastTime) > delay)
+            if ((now - last_time) > delay)
             {
-                if (reading == 1 && lastState == 0)
+                if (reading == 1 && last_state == 0)
                 {
                     clicked = true;
                 }
-                lastState = reading;
+                last_state = reading;
             }
-            lastTime = now;
+            last_time = now;
         }
 
         return clicked;
     }
 };
+
+void btn_wait_click(Button &btn)
+{
+    while (!btn.is_clicked())
+    {
+        vTaskDelay(1);
+    }
+}

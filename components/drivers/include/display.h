@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "esp_partition.h"
 #include "boot.h"
+#include "storage.h"
 
 struct menu_layout
 {
@@ -33,7 +34,6 @@ struct menu_layout
     uint16_t app_info_y;
     uint16_t app_info_w;
     uint16_t app_info_h;
-
     void update(uint16_t w, uint16_t h)
     {
         screen_w = w;
@@ -44,6 +44,7 @@ struct menu_layout
         footer_h = screen_h * footer_pers;
         footer_y = screen_h - footer_h;
         table_h = header_h * 2;
+
         apps_y = header_h;
         apps_h = screen_h - (header_h + footer_h);
         table_n_x = padding * 4;
@@ -76,4 +77,8 @@ public:
 
     void highlightApp(const menu_layout &layout, boot_app_t apps[], uint8_t length, uint8_t id);
     void drawAppInfo(const menu_layout &layout, boot_app_t app);
+    void drawAll(const menu_layout &layout, boot_app_t apps[], uint8_t length, uint8_t id, const bool cardState);
+    void changeAppsType(const menu_layout &layout, const bool is_flash);
+    void highlightStorageApp(const menu_layout &layout, storage_app_t apps[], uint8_t length, uint8_t id);
+    void drawStorageAppInfo(const menu_layout &layout, storage_app_t app);
 };

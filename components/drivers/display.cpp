@@ -73,11 +73,9 @@ void Display::printMenuInfo(const menu_layout &layout, const bool cardState)
     _lcd.drawFastVLine(h_x, 0, layout.header_h);
 
     // table
+
     _lcd.setTextDatum(textdatum_t::middle_left);
     uint16_t t_cy = 1 + (layout.header_h + layout.header_h / 2);
-    // uint16_t cur_t_x = layout.padding;
-    _lcd.drawString("Apps", layout.table_n_x + layout.padding, t_cy);
-
     _lcd.drawString("App info", layout.app_sidebar_x + layout.padding, t_cy);
 
     // footer
@@ -120,20 +118,20 @@ void Display::printMenuInfo(const menu_layout &layout, const bool cardState)
 
 void Display::drawAppInfo(const menu_layout &layout, boot_app_t app)
 {
-    ESP_LOGI(_TAG, "Drawing app info");
     auto font = &fonts::Font0;
     _lcd.setFont(font);
     const int32_t font_h = _lcd.fontHeight(font);
+
+    ESP_LOGI(_TAG, "Current app: %s", app.label);
 
     uint16_t cur_y = layout.app_info_y;
     uint16_t cur_x = layout.app_info_x + 1;
 
     _lcd.fillRect(cur_x, cur_y, layout.app_info_w, layout.app_info_h, TFT_BLUE);
     cur_y += layout.padding;
-
     _lcd.setTextDatum(textdatum_t::middle_left);
-    char infoBuf[64];
 
+    char infoBuf[64];
     snprintf(infoBuf, sizeof(infoBuf), "Addres:%lu", app.address);
     _lcd.drawString(infoBuf, cur_x, cur_y);
     cur_y += (font_h / 2) + layout.padding + 3;
@@ -158,6 +156,24 @@ void Display::drawAppInfo(const menu_layout &layout, boot_app_t app)
     cur_y += (font_h / 2) + layout.padding + 3;
 }
 
+void Display::changeAppsType(const menu_layout &layout, const bool is_flash)
+{
+    auto font = &fonts::Font0;
+    _lcd.setFont(font);
+    _lcd.setTextDatum(textdatum_t::middle_left);
+
+    uint16_t y = 1 + (layout.header_h + layout.header_h / 2);
+    uint16_t x = 0;
+    _lcd.fillRect(x, layout.header_h + 1, layout.app_sidebar_x, layout.header_h, TFT_BLUE);
+    _lcd.drawFastHLine(0, layout.table_h, layout.app_sidebar_x, TFT_WHITE);
+
+    x += layout.padding;
+    char label[20];
+    snprintf(label, sizeof(label), "Apps: %s", is_flash ? "Flash" : "Storage");
+    _lcd.drawString(label, x, y);
+    ESP_LOGI(_TAG, "App type changed to: %s", is_flash ? "Flash" : "Storage");
+}
+
 void Display::highlightApp(const menu_layout &layout, boot_app_t apps[], uint8_t length, uint8_t id)
 {
     auto font = &fonts::Font0;
@@ -165,6 +181,14 @@ void Display::highlightApp(const menu_layout &layout, boot_app_t apps[], uint8_t
     const int32_t row_h = _lcd.fontHeight(font) + layout.padding * 2 - 2;
     const uint16_t id_x = layout.table_n_x / 2;
     const uint16_t name_x = layout.padding + layout.table_n_x;
+
+    _lcd.fillRect(0, layout.table_h + 1, layout.app_sidebar_x, layout.footer_y - layout.table_h - 1, TFT_BLUE);
+
+    if (length == 0)
+    {
+        _lcd.drawString("No apps found", layout.padding, layout.table_h + row_h);
+        return;
+    }
 
     for (uint8_t i = 0; i < length; i++)
     {
@@ -201,4 +225,63 @@ void Display::drawPanic(const char *msg)
     _lcd.setCursor(x, y + (_lcd.fontHeight(&fonts::Font0) / 2));
     _lcd.setTextColor(TFT_RED);
     _lcd.print("OK");
+}
+
+void Display::drawAll(const menu_layout &layout, boot_app_t apps[], uint8_t length, uint8_t id, const bool cardState)
+{
+    _lcd.clear();
+    drawMenuLayout(layout);
+    printMenuInfo(layout, cardState);
+    highlightApp(layout, apps, length, id);
+    changeAppsType(layout, true);
+}
+
+void Display::highlightStorageApp(const menu_layout &layout, storage_app_t apps[], uint8_t length, uint8_t id)
+{
+    auto font = &fonts::Font0;
+    _lcd.setFont(font);
+    const int32_t row_h = _lcd.fontHeight(font) + layout.padding * 2 - 2;
+    const uint16_t id_x = layout.table_n_x / 2;
+    const uint16_t name_x = layout.padding + layout.table_n_x;
+
+    _lcd.fillRect(0, layout.table_h + 1, layout.app_sidebar_x, layout.footer_y - layout.table_h - 1, TFT_BLUE);
+
+    if (length == 0)
+    {
+        _lcd.drawString("No storage apps found", layout.padding, layout.table_h + row_h);
+        return;
+    }
+
+    for (uint8_t i = 0; i < length; i++)
+    {
+        const bool sel = (i == id);
+        const uint16_t y = layout.table_h + i * row_h + layout.padding;
+        _lcd.fillRect(0, y, layout.app_sidebar_x, row_h, sel ? TFT_WHITE : TFT_BLUE);
+        _lcd.setTextColor(sel ? TFT_BLUE : TFT_WHITE);
+        _lcd.setTextDatum(textdatum_t::middle_center);
+        _lcd.drawNumber(i, id_x, y + row_h / 2);
+        _lcd.setTextDatum(textdatum_t::middle_left);
+        _lcd.drawString(apps[i].name, name_x, y + row_h / 2);
+    }
+    _lcd.setTextColor(TFT_WHITE);
+    drawStorageAppInfo(layout, apps[id]);
+}
+
+void Display::drawStorageAppInfo(const menu_layout &layout, storage_app_t app)
+{
+    auto font = &fonts::Font0;
+    _lcd.setFont(font);
+    const int32_t font_h = _lcd.fontHeight(font);
+
+    ESP_LOGI(_TAG, "Current storage app: %s", app.name);
+    uint16_t cur_y = layout.app_info_y;
+    uint16_t cur_x = layout.app_info_x + 1;
+    _lcd.fillRect(cur_x, cur_y, layout.app_info_w, layout.app_info_h, TFT_BLUE);
+    cur_y += layout.padding;
+    _lcd.setTextDatum(textdatum_t::middle_left);
+
+    char infoBuf[64];
+    snprintf(infoBuf, sizeof(infoBuf), "Size:%lu KB", app.size / 1024);
+    _lcd.drawString(infoBuf, cur_x, cur_y);
+    cur_y += (font_h / 2) + layout.padding + 3;
 }
