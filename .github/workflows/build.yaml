@@ -18,7 +18,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+            submodules: recursive
+
+      - name: Configure partition table
+        run: cp partitions/16mb.csv partitions.csv
 
       - name: Build
         shell: bash

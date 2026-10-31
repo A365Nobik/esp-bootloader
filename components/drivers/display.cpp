@@ -249,13 +249,13 @@ void Display::drawPanic(const char *msg)
     _lcd.setTextWrap(true);
     _lcd.print(msg);
 
-    _lcd.setTextDatum(middle_center);
-    int32_t y = _lcd.height() - _lcd.fontHeight(font);
-    int32_t x = (_lcd.width() - _lcd.textWidth("OK")) / 2;
-    _lcd.fillRect(0, y, _lcd.width(), _lcd.height() - y, TFT_WHITE);
-    _lcd.setCursor(x, _lcd.height());
-    _lcd.setTextColor(TFT_RED);
-    _lcd.print("OK");
+    // _lcd.setTextDatum(middle_center);
+    // int32_t y = _lcd.height() - _lcd.fontHeight(font);
+    // int32_t x = (_lcd.width() - _lcd.textWidth("OK")) / 2;
+    // _lcd.fillRect(0, y, _lcd.width(), _lcd.height() - y, TFT_WHITE);
+    // // _lcd.setTextColor(TFT_RED);
+    // // _lcd.setTextDatum(bottom_center);
+    // // _lcd.drawCenterString("OK", _lcd.width() / 2, y + (_lcd.height() - y) / 2);
 }
 
 void Display::drawAll(const menu_layout &layout, boot_app_t apps[], uint8_t length, uint8_t id, const bool cardState)
