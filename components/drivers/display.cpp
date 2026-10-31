@@ -2,12 +2,19 @@
 #include <cstring>
 #include "board_info.h"
 #include "esp_log.h"
+#include "globals.h"
 
 bool Display::init()
 {
     if (_lcd.init())
     {
         _lcd.setRotation(LCD_ROTATE);
+#ifdef USE_SENSOR
+        if (!_lcd.touch()->init())
+        {
+            return false;
+        }
+#endif
         return true;
     }
     return false;
@@ -19,7 +26,14 @@ void Display::intro()
     _lcd.setBrightness(0);
     _lcd.fillScreen(TFT_BLUE);
     _lcd.setColor(TFT_WHITE);
-    _lcd.setTextSize(3);
+    if (_lcd.width() < _lcd.height())
+    {
+        _lcd.setTextSize(2);
+    }
+    else
+    {
+        _lcd.setTextSize(3);
+    }
     _lcd.setTextDatum(textdatum_t::middle_center);
 
     const size_t len = strlen(_intro_title);
@@ -79,15 +93,22 @@ void Display::printMenuInfo(const menu_layout &layout, const bool cardState)
     _lcd.drawString("App info", layout.app_sidebar_x + layout.padding, t_cy);
 
     // footer
-    const char *version = "V:0.0";
+    char footerBuf[64];
+    snprintf(footerBuf, sizeof(footerBuf), "V:%s", VERSION);
     uint16_t f_cy = 1 + (layout.footer_y + layout.footer_h / 2);
     uint16_t cur_f_x = layout.padding;
-    _lcd.drawString(version, cur_f_x, f_cy);
-    cur_f_x += _lcd.textWidth(version) + layout.padding;
+    _lcd.drawString(footerBuf, cur_f_x, f_cy);
+    cur_f_x += _lcd.textWidth(footerBuf) + layout.padding;
     _lcd.drawFastVLine(cur_f_x, layout.footer_y, layout.footer_h);
 
-    char footerBuf[64];
-    snprintf(footerBuf, sizeof(footerBuf), "Chip: %s", get_chip_name());
+    if (layout.screen_h > layout.screen_w)
+    {
+        snprintf(footerBuf, sizeof(footerBuf), "C:%s", get_chip_name(true));
+    }
+    else
+    {
+        snprintf(footerBuf, sizeof(footerBuf), "Chip:%s", get_chip_name(false));
+    }
     cur_f_x += layout.padding;
     _lcd.drawString(footerBuf, cur_f_x, f_cy);
     cur_f_x += _lcd.textWidth(footerBuf) + layout.padding;
@@ -112,7 +133,14 @@ void Display::printMenuInfo(const menu_layout &layout, const bool cardState)
     _lcd.drawFastVLine(cur_f_x, layout.footer_y, layout.footer_h);
 
     cur_f_x += layout.padding;
-    snprintf(footerBuf, sizeof(footerBuf), "Fr:%dMHz", int(get_chip_freq_hz() / (1000000)));
+    if (layout.screen_h > layout.screen_w)
+    {
+        snprintf(footerBuf, sizeof(footerBuf), "%dMHz", int(get_chip_freq_hz() / (1000000)));
+    }
+    else
+    {
+        snprintf(footerBuf, sizeof(footerBuf), "Fr:%dMHz", int(get_chip_freq_hz() / (1000000)));
+    }
     _lcd.drawString(footerBuf, cur_f_x, f_cy);
 }
 
@@ -120,6 +148,7 @@ void Display::drawAppInfo(const menu_layout &layout, boot_app_t app)
 {
     auto font = &fonts::Font0;
     _lcd.setFont(font);
+    _lcd.setTextSize(1);
     const int32_t font_h = _lcd.fontHeight(font);
 
     ESP_LOGI(_TAG, "Current app: %s", app.label);
@@ -160,6 +189,7 @@ void Display::changeAppsType(const menu_layout &layout, const bool is_flash)
 {
     auto font = &fonts::Font0;
     _lcd.setFont(font);
+    _lcd.setTextSize(1);
     _lcd.setTextDatum(textdatum_t::middle_left);
 
     uint16_t y = 1 + (layout.header_h + layout.header_h / 2);
@@ -178,6 +208,7 @@ void Display::highlightApp(const menu_layout &layout, boot_app_t apps[], uint8_t
 {
     auto font = &fonts::Font0;
     _lcd.setFont(font);
+    _lcd.setTextSize(1);
     const int32_t row_h = _lcd.fontHeight(font) + layout.padding * 2 - 2;
     const uint16_t id_x = layout.table_n_x / 2;
     const uint16_t name_x = layout.padding + layout.table_n_x;
@@ -219,10 +250,10 @@ void Display::drawPanic(const char *msg)
     _lcd.print(msg);
 
     _lcd.setTextDatum(middle_center);
-    int32_t y = _lcd.height() - _lcd.fontHeight(&fonts::Font0);
-    int32_t x = (_lcd.width() / 2) - _lcd.textWidth("OK") + 1;
+    int32_t y = _lcd.height() - _lcd.fontHeight(font);
+    int32_t x = (_lcd.width() - _lcd.textWidth("OK")) / 2;
     _lcd.fillRect(0, y, _lcd.width(), _lcd.height() - y, TFT_WHITE);
-    _lcd.setCursor(x, y + (_lcd.fontHeight(&fonts::Font0) / 2));
+    _lcd.setCursor(x, _lcd.height());
     _lcd.setTextColor(TFT_RED);
     _lcd.print("OK");
 }
@@ -234,12 +265,16 @@ void Display::drawAll(const menu_layout &layout, boot_app_t apps[], uint8_t leng
     printMenuInfo(layout, cardState);
     highlightApp(layout, apps, length, id);
     changeAppsType(layout, true);
+#ifdef USE_SENSOR
+    drawSensorButtons(layout, cardState);
+#endif
 }
 
 void Display::highlightStorageApp(const menu_layout &layout, storage_app_t apps[], uint8_t length, uint8_t id)
 {
     auto font = &fonts::Font0;
     _lcd.setFont(font);
+    _lcd.setTextSize(1);
     const int32_t row_h = _lcd.fontHeight(font) + layout.padding * 2 - 2;
     const uint16_t id_x = layout.table_n_x / 2;
     const uint16_t name_x = layout.padding + layout.table_n_x;
@@ -271,6 +306,7 @@ void Display::drawStorageAppInfo(const menu_layout &layout, storage_app_t app)
 {
     auto font = &fonts::Font0;
     _lcd.setFont(font);
+    _lcd.setTextSize(1);
     const int32_t font_h = _lcd.fontHeight(font);
 
     ESP_LOGI(_TAG, "Current storage app: %s", app.name);
@@ -284,4 +320,131 @@ void Display::drawStorageAppInfo(const menu_layout &layout, storage_app_t app)
     snprintf(infoBuf, sizeof(infoBuf), "Size:%lu KB", app.size / 1024);
     _lcd.drawString(infoBuf, cur_x, cur_y);
     cur_y += (font_h / 2) + layout.padding + 3;
+}
+
+void Display::drawSensorButtons(const menu_layout &layout, const bool card_state)
+{
+    auto font = &fonts::Font0;
+    _lcd.setFont(font);
+    _lcd.setTextSize(2);
+    _lcd.setTextDatum(baseline_center);
+
+    const uint8_t w = 48;
+    const uint8_t h = 48;
+
+    int32_t x = layout.sensor_x;
+    int32_t y = layout.sensor_y;
+
+    int32_t t_x = layout.sensor_x + layout.padding;
+    int32_t t_y = layout.sensor_y + layout.padding;
+    t_y += h / 2 + layout.padding;
+
+    _lcd.drawFastHLine(x, y, layout.screen_h);
+
+    y += layout.padding;
+    x += layout.padding;
+
+    t_x += w / 2;
+    _lcd.drawRect(x, y, w, h);
+    _lcd.drawString(SYM_UP, t_x, t_y);
+
+    x += w + layout.padding;
+    t_x = x + w / 2;
+    _lcd.drawRect(x, y, w, h);
+    _lcd.drawString(SYM_OK, t_x, t_y);
+
+    if (card_state)
+    {
+        if (layout.screen_h > layout.screen_w)
+        {
+            _lcd.drawRect(x, y + h + layout.padding, w, h);
+            _lcd.drawString(SYM_TYPE, t_x, y + h + (2 * layout.padding) + (h / 2));
+        }
+        else
+        {
+            x += w + layout.padding;
+            t_x = x + w / 2;
+            _lcd.drawRect(x, y, w, h);
+            _lcd.drawString(SYM_TYPE, t_x, t_y);
+        }
+    }
+
+    y += h + layout.padding;
+    x = layout.sensor_x + layout.padding;
+    _lcd.drawRect(x, y, w, h);
+    t_x = x + w / 2;
+    t_y = y + h / 2 + layout.padding;
+    _lcd.drawString(SYM_DOWN, t_x, t_y);
+}
+
+const char *Display::proceedSensor(const menu_layout &layout, bool card_state)
+{
+    static bool was_touched = false;
+
+    lgfx::touch_point_t tp;
+
+    if (!_lcd.getTouch(&tp))
+    {
+        was_touched = false;
+        return nullptr;
+    }
+
+    if (was_touched)
+    {
+        return nullptr;
+    }
+
+    was_touched = true;
+
+    const int32_t w = 48;
+    const int32_t h = 48;
+    const int32_t p = layout.padding;
+
+    const int32_t x = layout.sensor_x + p;
+    const int32_t y = layout.sensor_y + p;
+
+    const char *button = nullptr;
+
+    if (inside(tp.x, tp.y, x, y, w, h))
+    {
+        button = SYM_UP;
+    }
+    else if (inside(tp.x, tp.y, x + w + p, y, w, h))
+    {
+        button = SYM_OK;
+    }
+    else if (inside(tp.x, tp.y, x, y + h + p, w, h))
+    {
+        button = SYM_DOWN;
+    }
+    else if (card_state)
+    {
+        if (layout.screen_h > layout.screen_w)
+        {
+            if (inside(tp.x, tp.y, x + w + p, y + h + p, w, h))
+            {
+                button = SYM_TYPE;
+            }
+        }
+        else
+        {
+            if (inside(tp.x, tp.y, x + 2 * (w + p), y, w, h))
+            {
+                button = SYM_TYPE;
+            }
+        }
+    }
+
+    ESP_LOGI(
+        _TAG, "Touch X:%d Y:%d Button:%s",
+        tp.x, tp.y, button ? button : "NONE");
+    return button;
+}
+
+void Display::waitTouch()
+{
+    lgfx::touch_point_t tp;
+
+    while (!_lcd.getTouch(&tp))
+        vTaskDelay(pdMS_TO_TICKS(10));
 }

@@ -64,3 +64,20 @@ esp_err_t boot_load_app(const esp_partition_t *app)
     ESP_LOGI(TAG, "App: %s loaded", app->label);
     return ESP_OK;
 }
+
+const esp_partition_t *boot_has_storage_part(const char *name)
+{
+    esp_partition_iterator_t it = esp_partition_find(
+        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    while (it != NULL)
+    {
+        const esp_partition_t *p = esp_partition_get(it);
+        if (strcmp(p->label, name) == 0 && p->type == ESP_PARTITION_TYPE_APP)
+        {
+            esp_partition_iterator_release(it);
+            return p;
+        }
+        it = esp_partition_next(it);
+    }
+    return NULL;
+}

@@ -1,4 +1,3 @@
-#include "card_config.h"
 #include "storage.h"
 #include "esp_vfs_fat.h"
 #include "driver/sdspi_host.h"

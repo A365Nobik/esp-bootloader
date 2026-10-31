@@ -6,7 +6,7 @@
 #define LCD_ROTATE 3
 #define LCD_START_BRG 100 // 0-255
 
-// #define USE_SENSOR
+#define USE_SENSOR
 
 #define LCD_PIN_CS GPIO_NUM_4
 #define LCD_PIN_DS GPIO_NUM_6
@@ -19,5 +19,7 @@
 #define LCD_SPI_WRITE_SPEED 20000000
 
 #ifdef USE_SENSOR
-#define LCD_SPI_READ_SPEED 16 * 000000
+#define LCD_SPI_READ_SPEED (2 * 1000000)
+#define LCD_TOUCH_PIN_CS GPIO_NUM_46
+#define LCD_TOUCH_PIN_INT GPIO_NUM_48
 #endif

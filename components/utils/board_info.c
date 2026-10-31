@@ -5,7 +5,7 @@
 #include <esp_clk_tree.h>
 #include "esp_partition.h"
 
-const char *get_chip_name(void)
+const char *get_chip_name(const bool is_short)
 {
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
@@ -17,22 +17,22 @@ const char *get_chip_name(void)
         chip_name = "ESP32";
         break;
     case CHIP_ESP32S2:
-        chip_name = "ESP32-S2";
+        chip_name = is_short ? "S2" : "ESP32-S2";
         break;
     case CHIP_ESP32S3:
-        chip_name = "ESP32-S3";
+        chip_name = is_short ? "S3" : "ESP32-S3";
         break;
     case CHIP_ESP32C3:
-        chip_name = "ESP32-C3";
+        chip_name = is_short ? "C3" : "ESP32-C3";
         break;
     case CHIP_ESP32C2:
-        chip_name = "ESP32-C2";
+        chip_name = is_short ? "C2" : "ESP32-C2";
         break;
     case CHIP_ESP32C6:
-        chip_name = "ESP32-C6";
+        chip_name = is_short ? "C6" : "ESP32-C6";
         break;
     case CHIP_ESP32H2:
-        chip_name = "ESP32-H2";
+        chip_name = is_short ? "H2" : "ESP32-H2";
         break;
     default:
         chip_name = "?";

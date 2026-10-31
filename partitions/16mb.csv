@@ -1,0 +1,10 @@
+# Name,         Type, SubType, Offset,  Size,     Flags
+nvs,            data, nvs,     0x9000,  0x4000,
+otadata,        data, ota,     0xd000,  0x2000,
+phy_init,       data, phy,     0xf000,  0x1000,
+esp-bootloader, app,  factory, 0x10000, 512K,
+app_0,       app,  ota_0,   0x190000,1536K,
+app_1,     app,  ota_1,   0x310000,3M,
+app_2,      app,  ota_2,   0x610000,2M,
+app_3, app,  ota_3,   0x810000,2M,
+app_4,           app, ota_4,    0xA10000,2M,

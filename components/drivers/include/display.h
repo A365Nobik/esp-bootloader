@@ -5,6 +5,13 @@
 #include "boot.h"
 #include "storage.h"
 
+#ifdef USE_SENSOR
+#define SYM_OK "OK"
+#define SYM_UP "UP"
+#define SYM_DOWN "DW"
+#define SYM_TYPE "T"
+#endif
+
 struct menu_layout
 {
     static constexpr uint8_t padding = 4;
@@ -34,6 +41,12 @@ struct menu_layout
     uint16_t app_info_y;
     uint16_t app_info_w;
     uint16_t app_info_h;
+
+    uint16_t sensor_x;
+    uint16_t sensor_y;
+    uint16_t sensor_w;
+    uint16_t sensor_h;
+
     void update(uint16_t w, uint16_t h)
     {
         screen_w = w;
@@ -55,8 +68,13 @@ struct menu_layout
 
         app_info_x = app_sidebar_x + padding;
         app_info_y = table_h + padding;
-        app_info_h = screen_h - 2 * (footer_h + table_h);
+        app_info_h = (screen_h - 2 * (footer_h + table_h)) / 2;
         app_info_w = screen_w - app_sidebar_x;
+
+        sensor_x = app_sidebar_x;
+        sensor_y = screen_h / 2;
+        sensor_w = app_info_w;
+        sensor_h = app_info_h;
     }
 };
 
@@ -67,6 +85,13 @@ private:
     const char *_intro_title = "ESP-BOOTLOADER";
     uint8_t _prev_brg = LCD_START_BRG;
     const char *_TAG = "Display";
+    bool inside(int32_t x, int32_t y,
+                int32_t rx, int32_t ry,
+                int32_t w, int32_t h)
+    {
+        return x >= rx && x <= rx + w &&
+               y >= ry && y <= ry + h;
+    }
 
 public:
     bool init();
@@ -81,4 +106,7 @@ public:
     void changeAppsType(const menu_layout &layout, const bool is_flash);
     void highlightStorageApp(const menu_layout &layout, storage_app_t apps[], uint8_t length, uint8_t id);
     void drawStorageAppInfo(const menu_layout &layout, storage_app_t app);
+    void drawSensorButtons(const menu_layout &layout, const bool card_state);
+    const char *proceedSensor(const menu_layout &layout, bool card_state);
+    void waitTouch();
 };

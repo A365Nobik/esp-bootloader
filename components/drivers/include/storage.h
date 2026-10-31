@@ -1,5 +1,6 @@
 #pragma once
 #include "esp_err.h"
+#include "card_config.h"
 #include "esp_partition.h"
 
 #define STORAGE_APP_NAME_LEN 255

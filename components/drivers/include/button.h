@@ -43,6 +43,6 @@ void btn_wait_click(Button &btn)
 {
     while (!btn.is_clicked())
     {
-        vTaskDelay(1);
+        vTaskDelay(10);
     }
 }

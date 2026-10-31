@@ -1,39 +1,8 @@
 {
-  "C_Cpp.intelliSenseEngine": "default",
-  "idf.extensionActivationMode": "always",
-  "cmake.configureOnOpen": false,
-  "cmake.configureOnEdit": false,
-  "cmake.automaticReconfigure": false,
-  "cmake.autoSelectActiveFolder": false,
-  "cmake.options.advanced": {
-    "build": {
-      "statusBarVisibility": "inherit",
-      "inheritDefault": "hidden"
-    },
-    "launch": {
-      "statusBarVisibility": "inherit",
-      "inheritDefault": "hidden"
-    },
-    "debug": {
-      "statusBarVisibility": "inherit",
-      "inheritDefault": "hidden"
-    }
-  },
-  "idf.openOcdConfigs": [
-    "interface/ftdi/esp_ftdi.cfg",
-    "target/esp32s3.cfg"
-  ],
-  "idf.port": "/dev/tty.usbmodem2101",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.formatOnSave": true,
   "idf.currentSetup": "/Users/matusa/.espressif/v5.5.5/esp-idf",
-  "idf.customExtraVars": {
-    "IDF_TARGET": "esp32s3"
-  },
-  "clangd.path": "/Users/matusa/.espressif/tools/esp-clangd/esp-21.1.3_20260408/esp-clangd/bin/clangd",
-  "clangd.arguments": [
-    "--background-index",
-    "--query-driver=**",
-    "--compile-commands-dir=/Users/matusa/projects/esp-idf/test/build"
-  ],
-  "idf.flashType": "UART",
-  "C_Cpp.errorSquiggles": "disabled"
+  "idf.port": "/dev/tty.usbmodem2101",
+  "idf.flashType": "UART"
 }
