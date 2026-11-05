@@ -183,7 +183,7 @@ extern "C" void app_main(void)
                         lcd.drawAll(layout, apps, length, selected, card_ok);
                         continue;
                     }
-                    esp_err_t err = target ? storage_flash_app(storage_apps[selected].name, target)
+                    esp_err_t err = target ? storage_flash_app(storage_apps[selected].name, target,HOME_DIR)
                                            : ESP_ERR_NOT_FOUND;
 
                     if (err == ESP_OK)

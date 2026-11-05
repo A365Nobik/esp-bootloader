@@ -83,3 +83,4 @@ Desktop.ini
 build
 
 partitions.csv
+./sdkconfig.defaults

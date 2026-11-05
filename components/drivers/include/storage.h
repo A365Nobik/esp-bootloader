@@ -17,7 +17,7 @@ extern "C"
 
     esp_err_t storage_begin(void);
     uint8_t storage_init_apps(storage_app_t arr[], uint8_t max);
-    esp_err_t storage_flash_app(const char *name, const esp_partition_t *part);
+    esp_err_t storage_flash_app(const char *name, const esp_partition_t *part, const char *home_dir);
 
 #ifdef __cplusplus
 }

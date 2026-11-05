@@ -124,11 +124,11 @@ uint8_t storage_init_apps(storage_app_t arr[], uint8_t max)
     return n;
 }
 
-esp_err_t storage_flash_app(const char *name, const esp_partition_t *part)
+esp_err_t storage_flash_app(const char *name, const esp_partition_t *part,const char * home_dir)
 {
     ESP_LOGI(TAG, "Trying to flash...");
     char path[300];
-    snprintf(path, sizeof(path), "%s/%s", HOME_DIR, name);
+    snprintf(path, sizeof(path), "%s/%s", home_dir, name);
     struct stat st;
     if (stat(path, &st) != 0)
     {

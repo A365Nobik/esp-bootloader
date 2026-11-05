@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
   workflow_dispatch:
 
@@ -26,6 +27,7 @@ jobs:
                 cp partitions/16mb.csv partitions.csv
                 . $IDF_PATH/export.sh
                 idf.py set-target esp32s3
+                cp targets/esp32s3/sdkconfig.defaults sdkconfig.defaults
                 idf.py -D SDKCONFIG_DEFAULTS="sdkconfig.defaults" reconfigure
 
       - name: Build
